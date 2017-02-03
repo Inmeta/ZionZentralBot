@@ -89,7 +89,6 @@ bot.dialog('new_mission', [function (session) {
 
         // Set groupname variable
         var missionName = results.response;
-        console.log(missionName);
         
         // Sets sessionvariable
         //session.userData.name = results.response;
@@ -104,7 +103,7 @@ bot.dialog('new_mission', [function (session) {
         // future messages from the user will be routed to the root dialog.
 
         // Set groupname variable
-        var assignedGroup = results.response;
+        var assignedGroup = results.response.entity;
         
         // Sets sessionvariable
         //session.userData.name = results.response;
@@ -139,7 +138,7 @@ bot.dialog('mission_status', [function (session) {
         // future messages from the user will be routed to the root dialog.
 
         // Set groupname variable
-        var selectedMission = results.response;
+        var selectedMission = results.response.entity;
         
         // Sets sessionvariable
         // Make call to SP to get mission status
