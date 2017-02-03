@@ -30,25 +30,20 @@ server.post('/api/messages', connector.listen());
 //==============================================================
 
 // Add first run dialog
-bot.dialog('firstRun', [
+bot.dialog('firstRun',
     function (session) {
         // Update versio number and start Prompts
         // - The version number needs to be updated first to prevent re-triggering 
         //   the dialog. 
-        session.userData.version = 1.0; 
-        builder.Prompts.text(session, "Hello... What's your name?");
-    },
-    function (session, results) {
-        // We'll save the users name and send them an initial greeting. All 
-        // future messages from the user will be routed to the root dialog.
-        session.userData.name = results.response;
-        if(session.userData.name == 'Mr. Anderson') {
-            session.endDialog("%s... Nice to see you again.", session.userData.name); 
-        } else {
-            session.endDialog("Hi %s, what can i do for you?", session.userData.name);
-        }
-    }
-]).triggerAction({
+        session.userData.version = 1.1;
+
+        // Get username from SP and set it to var userName
+        var userName = 'Mr. Anderson';
+
+        session.userData.name = userName;
+        //builder.Prompts.text(session, "Hello %s. What can I do for you?", userName);
+        session.endDialog("Hello %s. What can I do for you?", userName);
+    }).triggerAction({
     onFindAction: function (context, callback) {
         // Trigger dialog if the users version field is less than 1.0
         // - When triggered we return a score of 1.1 to ensure the dialog is always triggered.
@@ -62,8 +57,29 @@ bot.dialog('firstRun', [
     }
 });
 
+// Add new_group dialog
+bot.dialog('new_group', [function (session) {
+    builder.Prompts.text(session, "Good. What would you like to call this group?");
+    //session.send("Having trouble, %s?", session.userData.name);
+    //session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
+    },
+    function (session, results) {
+        // We'll save the users name and send them an initial greeting. All 
+        // future messages from the user will be routed to the root dialog.
+
+        // Set groupname variable
+        var groupName = results.response;
+        
+        // Sets sessionvariable
+        //session.userData.name = results.response;
+
+        session.send('I have created the group "%s".', groupName);
+        session.endDialog('Is there anything else I could help you with?');
+    }
+]).triggerAction({ matches: /^.*new group.*/i });
+
 // Add help dialog
 bot.dialog('help', function (session) {
-    session.send("Having trouble, %s?", session.userData.name);
-    session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
-}).triggerAction({ matches: /^help/i });
+    session.send("Here's a list of what I can help you with, %s:", session.userData.name);
+    session.endDialog("[new group] - To create a new Rebel Group  \n [new mission] - To create a new mission");
+}).triggerAction({ matches: /^.*help.*/i });
