@@ -20,7 +20,6 @@ var connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("Hello, %s.", session.userData.name);
     session.send("What can I do for you? Say 'help' to see available commands...");
 });
 server.post('/api/messages', connector.listen());
@@ -90,6 +89,7 @@ bot.dialog('new_mission', [function (session) {
 
         // Set groupname variable
         var missionName = results.response;
+        console.log(missionName);
         
         // Sets sessionvariable
         //session.userData.name = results.response;
@@ -145,13 +145,12 @@ bot.dialog('mission_status', [function (session) {
         // Make call to SP to get mission status
         var missionStatus = 'Started';
 
-        session.send('Mission status for "%s":%s', selectedMission, missionStatus);
-        session.endDialog('Is there anything else I could help you with?');
+        session.endDialog('Mission status for "%s": %s', selectedMission, missionStatus);
     }
 ]).triggerAction({ matches: /^.*mission status.*/i });
 
 // Add help dialog
 bot.dialog('help', function (session) {
     session.send("Here's a list of what I can help you with, %s:", session.userData.name);
-    session.endDialog("[new group] - To create a new Rebel Group  \n [new mission] - To create a new mission");
+    session.endDialog("[new group] - To create a new Rebel Group  \n [new mission] - To create a new mission  \n [mission status] - To get mission status");
 }).triggerAction({ matches: /^.*help.*/i });
