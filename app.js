@@ -125,6 +125,31 @@ bot.dialog('new_mission', [function (session) {
     }
 ]).triggerAction({ matches: /^.*new mission.*/i });
 
+// Add mission_status dialog
+bot.dialog('mission_status', [function (session) {
+
+    var availableMissions = ['Secret Garden', 'Octepussy', 'Mission Impossible'];
+
+    builder.Prompts.choice(session, "Which mission would you like to see status for?", availableMissions);
+    //session.send("Having trouble, %s?", session.userData.name);
+    //session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
+    },
+    function (session, results) {
+        // We'll save the users name and send them an initial greeting. All 
+        // future messages from the user will be routed to the root dialog.
+
+        // Set groupname variable
+        var selectedMission = results.response;
+        
+        // Sets sessionvariable
+        // Make call to SP to get mission status
+        var missionStatus = 'Started';
+
+        session.send('Mission status for "%s":%s', selectedMission, missionStatus);
+        session.endDialog('Is there anything else I could help you with?');
+    }
+]).triggerAction({ matches: /^.*mission status.*/i });
+
 // Add help dialog
 bot.dialog('help', function (session) {
     session.send("Here's a list of what I can help you with, %s:", session.userData.name);
