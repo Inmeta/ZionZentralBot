@@ -35,7 +35,7 @@ bot.dialog('firstRun',
         // Update versio number and start Prompts
         // - The version number needs to be updated first to prevent re-triggering 
         //   the dialog. 
-        session.userData.version = 0.0;
+        session.userData.version = 1.0;
 
         // Get username from SP and set it to var userName
         var userName = 'Mr. Anderson';
