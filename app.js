@@ -36,11 +36,11 @@ bot.dialog('firstRun',
         //   the dialog. 
         session.userData.version = 1.0;
 
-        // Get username from SP and set it to var userName
+        // === Get username from SP and set it to var userName ===
         var userName = 'Mr. Anderson';
 
         session.userData.name = userName;
-        //builder.Prompts.text(session, "Hello %s. What can I do for you?", userName);
+
         session.endDialog("Hello %s. What can I do for you?", userName);
     }).triggerAction({
     onFindAction: function (context, callback) {
@@ -59,8 +59,6 @@ bot.dialog('firstRun',
 // Add new_group dialog
 bot.dialog('new_group', [function (session) {
     builder.Prompts.text(session, "Good. What would you like to call this group?");
-    //session.send("Having trouble, %s?", session.userData.name);
-    //session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
     },
     function (session, results) {
         // We'll save the users name and send them an initial greeting. All 
@@ -69,8 +67,7 @@ bot.dialog('new_group', [function (session) {
         // Set groupname variable
         var groupName = results.response;
         
-        // Sets sessionvariable
-        //session.userData.name = results.response;
+        // === Sets groupname in SP-list ===
 
         session.send('I have created the group "%s".', groupName);
         session.endDialog('Is there anything else I could help you with?');
@@ -80,8 +77,6 @@ bot.dialog('new_group', [function (session) {
 // Add new_mission dialog
 bot.dialog('new_mission', [function (session) {
     builder.Prompts.text(session, "A new mission, eh? What should we call this mission?");
-    //session.send("Having trouble, %s?", session.userData.name);
-    //session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
     },
     function (session, results) {
         // We'll save the users name and send them an initial greeting. All 
@@ -90,10 +85,9 @@ bot.dialog('new_mission', [function (session) {
         // Set groupname variable
         var missionName = results.response;
         
-        // Sets sessionvariable
-        //session.userData.name = results.response;
+        // === Sets new mission in SP-list ====
 
-        // Get groups from SP
+        // === Get existing groups from SP-list ====
         var availableGroups = ['Taskforce 1', 'Red rabbits', 'The spotted pants'];
 
         builder.Prompts.choice(session, "Which group should be assigned to the "+ missionName +" mission?", availableGroups);
@@ -105,8 +99,7 @@ bot.dialog('new_mission', [function (session) {
         // Set groupname variable
         var assignedGroup = results.response.entity;
         
-        // Sets sessionvariable
-        //session.userData.name = results.response;
+        // === Sets group to mission in SP-list ===
 
         builder.Prompts.text(session, "Please give a short description of your mission.");
     },
@@ -117,8 +110,7 @@ bot.dialog('new_mission', [function (session) {
         // Set groupname variable
         var missionDescription = results.response;
         
-        // Sets sessionvariable
-        //session.userData.name = results.response;
+        // === Sets mission description in SP ===
 
         session.endDialog('Thank you. Your mission has been created. I whish you the best of luck.');
     }
@@ -130,8 +122,6 @@ bot.dialog('mission_status', [function (session) {
     var availableMissions = ['Secret Garden', 'Octepussy', 'Mission Impossible'];
 
     builder.Prompts.choice(session, "Which mission would you like to see status for?", availableMissions);
-    //session.send("Having trouble, %s?", session.userData.name);
-    //session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
     },
     function (session, results) {
         // We'll save the users name and send them an initial greeting. All 
@@ -140,13 +130,17 @@ bot.dialog('mission_status', [function (session) {
         // Set groupname variable
         var selectedMission = results.response.entity;
         
-        // Sets sessionvariable
-        // Make call to SP to get mission status
+        // === Make call to SP to get mission status ===
         var missionStatus = 'Started';
 
         session.endDialog('Mission status for "%s": %s', selectedMission, missionStatus);
     }
 ]).triggerAction({ matches: /^.*mission status.*/i });
+
+// Add help dialog
+bot.dialog('thank_you', function (session) {
+    session.endDialog("You're welcome.");
+}).triggerAction({ matches: /^.*thank you.*/i });
 
 // Add help dialog
 bot.dialog('help', function (session) {
