@@ -78,6 +78,53 @@ bot.dialog('new_group', [function (session) {
     }
 ]).triggerAction({ matches: /^.*new group.*/i });
 
+// Add new_mission dialog
+bot.dialog('new_mission', [function (session) {
+    builder.Prompts.text(session, "A new mission, eh? What should we call this mission?");
+    //session.send("Having trouble, %s?", session.userData.name);
+    //session.endDialog("I'm afraid I can't help you. My programming tells me you and I are arch enemies.");
+    },
+    function (session, results) {
+        // We'll save the users name and send them an initial greeting. All 
+        // future messages from the user will be routed to the root dialog.
+
+        // Set groupname variable
+        var missionName = results.response;
+        
+        // Sets sessionvariable
+        //session.userData.name = results.response;
+
+        // Get groups from SP
+        var availableGroups = ['Taskforce 1', 'Red rabbits', 'The spotted pants'];
+
+        builder.Prompts.choice(session, "Which group should be assigned to the "+ missionName +" mission?", availableGroups);
+    },
+    function (session, results) {
+        // We'll save the users name and send them an initial greeting. All 
+        // future messages from the user will be routed to the root dialog.
+
+        // Set groupname variable
+        var assignedGroup = results.response;
+        
+        // Sets sessionvariable
+        //session.userData.name = results.response;
+
+        builder.Prompts.text(session, "Please give a short description of your mission.");
+    },
+    function (session, results) {
+        // We'll save the users name and send them an initial greeting. All 
+        // future messages from the user will be routed to the root dialog.
+
+        // Set groupname variable
+        var missionDescription = results.response;
+        
+        // Sets sessionvariable
+        //session.userData.name = results.response;
+
+        session.endDialog('Thank you. Your mission has been created. I whish you the best of luck.');
+    }
+]).triggerAction({ matches: /^.*new mission.*/i });
+
 // Add help dialog
 bot.dialog('help', function (session) {
     session.send("Here's a list of what I can help you with, %s:", session.userData.name);
