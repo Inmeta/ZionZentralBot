@@ -20,8 +20,8 @@ var connector = new builder.ChatConnector({
     appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("%s, I heard: %s", session.userData.name, session.message.text);
-    session.send("Say 'help' or something else...");
+    session.send("Hello, %s.", session.userData.name);
+    session.send("What can I do for you? Say 'help' to see available commands...");
 });
 server.post('/api/messages', connector.listen());
 
