@@ -3,6 +3,7 @@
 
 var restify = require('restify');
 var builder = require('botbuilder');
+var http = require('http');
 
 //===============================================================
 // Bot Setup
@@ -124,9 +125,6 @@ bot.dialog('mission_status', [function (session) {
     builder.Prompts.choice(session, "Which mission would you like to see status for?", availableMissions);
     },
     function (session, results) {
-        // We'll save the users name and send them an initial greeting. All 
-        // future messages from the user will be routed to the root dialog.
-
         // Set groupname variable
         var selectedMission = results.response.entity;
         
@@ -137,13 +135,41 @@ bot.dialog('mission_status', [function (session) {
     }
 ]).triggerAction({ matches: /^.*mission status.*/i });
 
-// Add help dialog
+// Add thank you dialog
 bot.dialog('thank_you', function (session) {
     session.endDialog("You're welcome.");
 }).triggerAction({ matches: /^.*thank you.*/i });
+
+// Add give me the answer dialog
+bot.dialog('answer_to_everything', function (session) {
+    session.endDialog("42");
+}).triggerAction({ matches: /^.*answer to everything.*/i });
 
 // Add help dialog
 bot.dialog('help', function (session) {
     session.send("Here's a list of what I can help you with, %s:", session.userData.name);
     session.endDialog("[new group] - To create a new Rebel Group  \n [new mission] - To create a new mission  \n [mission status] - To get mission status");
 }).triggerAction({ matches: /^.*help.*/i });
+
+// Sends a get request the robot api, which commands the robot
+var alertRobot = function() {
+    console.log('Creating a simple HTTP request');
+
+    http.get("http://api.ipify.org?format=json", function(res) {
+        var body = ''; // Will contain the final response
+        // Received data is a buffer.
+        // Adding it to our body
+        res.on('data', function(data){
+            body += data;
+        });
+        // After the response is completed, parse it and log it to the console
+        res.on('end', function() {
+            var parsed = JSON.parse(body);
+            console.log(parsed);
+        });
+    })
+    // If any error has occured, log error to console
+    .on('error', function(e) {
+        console.log("Got error: " + e.message);
+    });
+}
