@@ -86,7 +86,7 @@ bot.dialog('new_mission', [function (session) {
         // future messages from the user will be routed to the root dialog.
 
         // Set groupname variable
-        var missionName = results.response;
+        session.dialogData.missionName = results.response;
         
         session.send("I will get the available groups...");
 
@@ -101,7 +101,7 @@ bot.dialog('new_mission', [function (session) {
                     return rebel.Title
                 })
                         
-                builder.Prompts.choice(session, "Which group should be assigned to the "+ missionName +" mission?", rebels);
+                builder.Prompts.choice(session, "Which group should be assigned to the "+ session.dialogData.missionName +" mission?", rebels);
 
             }).catch(function(e) {
                 console.log(e);
@@ -124,16 +124,27 @@ bot.dialog('new_mission', [function (session) {
         session.dialogData.assignedGroup = assignedGroup;
         // === Sets group to mission in SP-list ===
 
-        builder.Prompts.text(session, "Please give a short description of your mission.");
-    },
-    function (session, results) {
-        // We'll save the users name and send them an initial greeting. All 
-        // future messages from the user will be routed to the root dialog.
+        session.send("We are creating a new mission...", session.dialogData.missionName, 'for group ', session.dialogData.assignedGroup);
 
-        // Set groupname variable
-        var missionDescription = results.response;
-
-        session.endDialog('Thank you. Your mission for group ' + session.dialogData.assignedGroup + ' has been created. I whish you the best of luck.');
+        getAuthHeaders().then(function(headers){
+            pnp.setup({ headers: headers });
+            
+            var web = new pnp.Web("https://inmetademo.sharepoint.com/sites/ASPC2017");
+            web.lists.getByTitle('Missions').items.add({
+                Title: session.dialogData.missionName,
+                Group: session.dialogData.assignedGroup,
+                "Mission Location": {
+                    "__metadata": {"type": "SP.FieldGeolocationValue"},
+                    "Latitude": 59.7808556,
+                    "Longitude": 6.1940634                    
+                }
+            }).then(function(res) { 
+                console.log(res, null, 2);
+            }).catch(function(e) {
+                console.log(e);
+            });
+        });
+        session.endDialog('Good luck with your mission');
     }
 ]).triggerAction({ matches: /^.*new mission.*/i });
 
