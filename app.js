@@ -69,14 +69,46 @@ bot.dialog('new_group', [function (session) {
     function (session, results) {
         // We'll save the users name and send them an initial greeting. All 
         // future messages from the user will be routed to the root dialog.
-
+        session.send("Creating group. What else can I do for you?");
         // Set groupname variable
         var groupName = results.response;
-        
-        // === Sets groupname in SP-list ===
+        spauth
+        .getAuth('https://inmetademo.sharepoint.com/sites/ASPC2017/', {
+            clientId: '3512acc4-e351-4f05-ab44-096f5feb5be0',
+            clientSecret: 'QZPey6+/314bIM5i7JnKKI4Ufwtiv45EDgJb8QXvOUQ=',
+            realm: '3d3bcaba-4686-474f-bdd3-010b8047ccc6'
+        })
+        .then(function (data) {
+            var headers = data.headers;
+            headers['Accept'] = 'application/json;odata=verbose';
 
-        session.send('I have created the group "%s".', groupName);
-        session.endDialog('Is there anything else I could help you with?');
+            request.post({
+                url: "https://inmetademo.sharepoint.com/sites/ASPC2017/_api/web/webinfos/add",
+                headers: headers,
+                json: true,
+                body: {
+                    'parameters': {
+                        /*'__metadata': {
+                            'type': 'SP.WebInfoCreationInformation'
+                        },*/
+                        'Url': groupName,
+                        'Title': groupName,
+                        'Description': '',
+                        'Language': 1033,
+                        'WebTemplate': 'sts',
+                        'UseUniquePermissions': false
+                    }
+                },
+            }).then(function (response) {
+                console.log(response,null,2);
+                session.send('By the way, the group %s is ready',groupName);
+                var link = "[Sharepoint group location](http://inmetademo.sharepoint.com" + response.d.ServerRelativeUrl + ")";
+                
+                session.send('You can visit it at: %s', link);
+            });
+            session.endDialog();
+        });        
+        // === Sets groupname in SP-list ===
     }
 ]).triggerAction({ matches: /^.*new group.*/i });
 
@@ -148,7 +180,7 @@ bot.dialog('new_mission', [function (session) {
                     'Mission_x0020_Location': "59.8939525,10.6446925"
                 },
             }).then(function (response) {
-                console.log(response);
+                session.endDialog('Good luck Mr. A.  \n "%s" group is on mission "%s".', assignedGroup, missionName);
             });
         });
         
@@ -156,19 +188,37 @@ bot.dialog('new_mission', [function (session) {
 ]).triggerAction({ matches: /^.*new mission.*/i });
 
 // Add mission_status dialog
-bot.dialog('mission_status', [function (session) {
+bot.dialog('mission_status', [function (session) { 
 
-    var availableMissions = ['Secret Garden', 'Octepussy', 'Mission Impossible'];
+    var missions = [];
+    session.dialogData.missions = [];
+    // Get Rebels
+    getAuthHeaders().then(function(headers){
+        pnp.setup({ headers: headers });
+        
+        var web = new pnp.Web("https://inmetademo.sharepoint.com/sites/ASPC2017");
+        web.lists.getByTitle('Missions').items.select("Title, Status").get().then(function (resMissions) {
+            session.dialogData.resMissions = resMissions;
+            session.dialogData.missions = resMissions.map(function(mision) {
+                return mision.Title
+            })
+                    
+            builder.Prompts.choice(session, "Which mission would you like to see status for? ", session.dialogData.missions);
 
-    builder.Prompts.choice(session, "Which mission would you like to see status for?", availableMissions);
+        }).catch(function(e) {
+            console.log(e);
+        });
+
+    })
     },
     function (session, results) {
         // Set groupname variable
         var selectedMission = results.response.entity;
-        
+        var currentMission = session.dialogData.resMissions.find(function(mission) {
+            return mission.Title === selectedMission
+        })
         // === Make call to SP to get mission status ===
-        var missionStatus = 'Started';
-
+        var missionStatus = currentMission.Status;
         session.endDialog('Mission status for "%s": %s', selectedMission, missionStatus);
     }
 ]).triggerAction({ matches: /^.*mission status.*/i });
