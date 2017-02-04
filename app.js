@@ -3,7 +3,9 @@
 
 var restify = require('restify');
 var builder = require('botbuilder');
+var pnp = require("sp-pnp-js");
 var http = require('http');
+var getAuthHeaders = require('./SPHelper');
 
 //===============================================================
 // Bot Setup
@@ -86,12 +88,32 @@ bot.dialog('new_mission', [function (session) {
         // Set groupname variable
         var missionName = results.response;
         
+        session.send("I will get the available groups...");
+
+        var rebels = [];
+        // Get Rebels
+        getAuthHeaders().then(function(headers){
+            pnp.setup({ headers: headers });
+            
+            var web = new pnp.Web("https://inmetademo.sharepoint.com/sites/ASPC2017");
+            web.lists.getByTitle('Rebels').items.select("Title").get().then(function (resRebels) {
+                rebels = resRebels.map(function(rebel) {
+                    return rebel.Title
+                })
+                        
+                builder.Prompts.choice(session, "Which group should be assigned to the "+ missionName +" mission?", rebels);
+
+            }).catch(function(e) {
+                console.log(e);
+            });
+
+        })
         // === Sets new mission in SP-list ====
 
         // === Get existing groups from SP-list ====
-        var availableGroups = ['Taskforce 1', 'Red rabbits', 'The spotted pants'];
+        // var availableGroups = ['Taskforce 1', 'Red rabbits', 'The spotted pants'];
 
-        builder.Prompts.choice(session, "Which group should be assigned to the "+ missionName +" mission?", availableGroups);
+        
     },
     function (session, results) {
         // We'll save the users name and send them an initial greeting. All 
@@ -99,7 +121,7 @@ bot.dialog('new_mission', [function (session) {
 
         // Set groupname variable
         var assignedGroup = results.response.entity;
-        
+        session.dialogData.assignedGroup = assignedGroup;
         // === Sets group to mission in SP-list ===
 
         builder.Prompts.text(session, "Please give a short description of your mission.");
@@ -110,10 +132,8 @@ bot.dialog('new_mission', [function (session) {
 
         // Set groupname variable
         var missionDescription = results.response;
-        
-        // === Sets mission description in SP ===
 
-        session.endDialog('Thank you. Your mission has been created. I whish you the best of luck.');
+        session.endDialog('Thank you. Your mission for group ' + session.dialogData.assignedGroup + ' has been created. I whish you the best of luck.');
     }
 ]).triggerAction({ matches: /^.*new mission.*/i });
 

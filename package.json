@@ -10,6 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "botbuilder": "^3.5.4",
-    "restify": "^4.3.0"
+    "node-fetch": "^1.6.3",
+    "node-sp-auth": "^1.2.3",
+    "restify": "^4.3.0",
+    "sp-pnp-js": "^2.0.0"
   }
 }
