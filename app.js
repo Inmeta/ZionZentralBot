@@ -1,11 +1,14 @@
 // TODO: Implement regex expression with 'fight'. Mr. Smith respons: Are you currently located at [location]?
 // User answers no: Are you lying to me Mr. Anderson? If you are; this is what I will do to you: [Gif of Mr. Smith]
-
+var request = require('request-promise');
 var restify = require('restify');
 var builder = require('botbuilder');
 var pnp = require("sp-pnp-js");
 var http = require('http');
 var getAuthHeaders = require('./SPHelper');
+var config = require('./SPHelper/config');
+
+var spauth = require('node-sp-auth');
 
 //===============================================================
 // Bot Setup
@@ -118,33 +121,37 @@ bot.dialog('new_mission', [function (session) {
     function (session, results) {
         // We'll save the users name and send them an initial greeting. All 
         // future messages from the user will be routed to the root dialog.
-
-        // Set groupname variable
+        // Set meta variable
+        var missionName = session.dialogData.missionName;
         var assignedGroup = results.response.entity;
         session.dialogData.assignedGroup = assignedGroup;
         // === Sets group to mission in SP-list ===
 
-        session.send("We are creating a new mission...", session.dialogData.missionName, 'for group ', session.dialogData.assignedGroup);
+        session.send("We are creating a new mission " + missionName + " for group " + session.dialogData.assignedGroup);
+        spauth
+        .getAuth('https://inmetademo.sharepoint.com/sites/ASPC2017/', {
+            clientId: '3512acc4-e351-4f05-ab44-096f5feb5be0',
+            clientSecret: 'QZPey6+/314bIM5i7JnKKI4Ufwtiv45EDgJb8QXvOUQ=',
+            realm: '3d3bcaba-4686-474f-bdd3-010b8047ccc6'
+        })
+        .then(function (data) {
+            var headers = data.headers;
+            headers['Accept'] = 'application/json;odata=verbose';
 
-        getAuthHeaders().then(function(headers){
-            pnp.setup({ headers: headers });
-            
-            var web = new pnp.Web("https://inmetademo.sharepoint.com/sites/ASPC2017");
-            web.lists.getByTitle('Missions').items.add({
-                Title: session.dialogData.missionName,
-                Group: session.dialogData.assignedGroup,
-                "Mission Location": {
-                    "__metadata": {"type": "SP.FieldGeolocationValue"},
-                    "Latitude": 59.7808556,
-                    "Longitude": 6.1940634                    
-                }
-            }).then(function(res) { 
-                console.log(res, null, 2);
-            }).catch(function(e) {
-                console.log(e);
+            request.post({
+                url: "https://inmetademo.sharepoint.com/sites/ASPC2017/_api/web/lists/getByTitle('Missions')/items",
+                headers: headers,
+                json: true,
+                body: {
+                    'Title': missionName,
+                    'Group': assignedGroup,
+                    'Mission_x0020_Location': "59.8939525,10.6446925"
+                },
+            }).then(function (response) {
+                console.log(response);
             });
         });
-        session.endDialog('Good luck with your mission');
+        
     }
 ]).triggerAction({ matches: /^.*new mission.*/i });
 
@@ -204,3 +211,4 @@ var alertRobot = function() {
         console.log("Got error: " + e.message);
     });
 }
+

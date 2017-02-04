@@ -12,7 +12,11 @@
     "botbuilder": "^3.5.4",
     "node-fetch": "^1.6.3",
     "node-sp-auth": "^1.2.3",
+    "request-promise": "^4.1.1",
     "restify": "^4.3.0",
     "sp-pnp-js": "^2.0.0"
+  },
+  "devDependencies": {
+    "sp-request": "^2.0.3"
   }
 }
